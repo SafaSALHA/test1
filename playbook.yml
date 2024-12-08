@@ -1,0 +1,120 @@
+---
+- name: Provisionner les VMs avec Docker 
+  hosts: all
+  become: true
+  vars:
+    daemon_config:
+      hosts:
+        - "tcp://0.0.0.0:2375"
+        - "unix:///var/run/docker.sock"
+  tasks:
+
+    # Mettre à jour les paquets et insstaller prerequisites
+    - name: Mettre à jour les paquets
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: installer requered packages
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - software-properties-common
+        state: present
+
+    # Installer Docker
+    - name: Add Docker's GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+        state: present
+        filename: "docker.list"
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+
+    # Ajouter l'utilisateur vagrant au groupe docker pour exécuter Docker sans sudo
+    - name: Ajouter l'utilisateur vagrant au groupe docker
+      user:
+        name: vagrant
+        group: docker
+
+    - name: Redémarrer Docker
+      service:
+        name: docker
+        state: restarted
+        enabled: true
+    # Installer Terraform
+    - name: Ajouter la clé GPG de Terraform
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+    - name: Détecter la version d'Ubuntu
+      command: lsb_release -cs
+      register: ubuntu_version
+
+    - name: Ajouter le dépôt de Terraform
+      apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com focal main"
+        state: present
+    - name: Mettre à jour les paquets après ajout du dépôt Terraform
+      apt:
+        update_cache: yes
+
+    - name: Installer Terraform
+      apt:
+        name: terraform
+        state: present
+
+    # Créer un répertoire pour Terraform
+    - name: Créer un répertoire pour Terraform
+      file:
+        path: "/home/vagrant/terraform"
+        state: directory
+
+    # Copier le fichier Terraform
+    - name: Copier le fichier de configuration Terraform
+      copy:
+        src: "main.tf"
+        dest: "/home/vagrant/terraform/main.tf"
+        owner: vagrant
+        group: vagrant
+        mode: "0644"
+   
+    # Corriger les permissions du répertoire Terraform
+    - name: Corriger les permissions du répertoire Terraform
+      file:
+        path: "/home/vagrant/terraform"
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: "0755"
+    # Supprimer le fichier de verrouillage Terraform s'il existe
+    - name: Supprimer le fichier de verrouillage Terraform s'il existe
+      file:
+        path: "/home/vagrant/terraform/.terraform.tfstate.lock.info"
+        state: absent
+      become_user: vagrant
+
+    # Initialiser Terraform
+    - name: Initialiser Terraform
+      command:
+        cmd: terraform init
+        chdir: "/home/vagrant/terraform"
+      become_user: vagrant
+
+     # Appliquer la configuration Terraform pour  VM 
+    - name: Appliquer la configuration Terraform pour chaque VM
+      command:
+        cmd: terraform apply -auto-approve
+        chdir: "/home/vagrant/terraform"
+      become_user: vagrant

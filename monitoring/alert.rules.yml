@@ -1,0 +1,12 @@
+groups:
+  - name: disk_alert
+    rules:
+      - alert: DiskSpaceLow
+        expr: 100 - (100 * (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 90
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low Disk Space Alert"
+          description: "The disk space available is less than 10% on instance {{ $labels.instance }}"
+

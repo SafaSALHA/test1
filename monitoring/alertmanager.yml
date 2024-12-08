@@ -1,0 +1,15 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'safa.salha2000@gmail.com'
+  smtp_auth_username: 'safa.salha2000@gmail.com'
+  smtp_auth_password: 'dljynmtanwtbnnmy'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname']
+  receiver: 'email-alert'
+
+receivers:
+  - name: 'email-alert'
+    email_configs:
+      - to: 'safa.salha2000@gmail.com'
