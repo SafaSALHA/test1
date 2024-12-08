@@ -6,7 +6,7 @@ node {
     }
 
     stage('Build Project') {
-        sh "${mvnHome}/bin/mvn clean package"
+        sh "mvn clean package"
     }
 
     stage('Build Docker Image') {
