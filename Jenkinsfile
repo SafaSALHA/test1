@@ -1,5 +1,5 @@
 node {
-    def mvnHome = tool 'maven-3.8.7'
+
     
     stage('Clone Repo') {
         git branch: 'main', url: 'https://github.com/SafaSALHA/test1.git'
