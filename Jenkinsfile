@@ -1,16 +1,19 @@
 node {
 
-    
     stage('Clone Repo') {
         git branch: 'main', url: 'https://github.com/SafaSALHA/test1.git'
     }
 
     stage('Build Project') {
-        sh "mvn clean package"
+        dir('salutation') {
+            sh "mvn clean package"
+        }
     }
 
     stage('Build Docker Image') {
-        sh "docker build -t safa318/test1:v1.0 ."
+        dir('salutation') {
+            sh "docker build -t safa318/test1:v1.0 ."
+        }
     }
 
     stage('Push Docker Image') {
@@ -30,3 +33,4 @@ node {
         sh "docker run --name devopsexample -d -p 9999:8888 safa318/test1:v1.0"
     }
 }
+
